@@ -36,20 +36,11 @@ lithotherapie_data = {
     }
 }
 
-# Route GET pour tester que l'API fonctionne
-@app.route("/", methods=['GET'])
-def home():
-    return jsonify({"message": "Bienvenue sur l'API de lithothérapie ! Utilisez /chatbot avec une requête POST pour poser une question."})
-
-# Route GET et POST pour interagir avec le chatbot
-@app.route('/chatbot', methods=['GET', 'POST'])
+@app.route('/chatbot', methods=['POST'])
 def chatbot():
-    if request.method == 'GET':
-        return jsonify({"message": "Utilisez une requête POST avec un JSON pour poser une question sur une pierre."})
-
     data = request.json
     question = data.get("message", "").lower()
-    
+
     for pierre, details in lithotherapie_data.items():
         if pierre in question:
             response = {
@@ -60,11 +51,13 @@ def chatbot():
                 "signe": details["signe"],
                 "entretien": details["entretien"]
             }
-            return jsonify(response)
+            return Response(
+                json.dumps(response, ensure_ascii=False),  # ✅ Garder les accents
+                content_type="application/json; charset=utf-8"
+            )
 
-    return jsonify({"response": "Je ne connais pas encore cette pierre, mais je peux te renseigner sur d'autres."})
+    return jsonify({"response": "Je ne connais pas encore cette pierre, mais je peux te renseigner sur d'autres. Demande-moi par exemple les bienfaits de l'améthyste ou comment recharger la tourmaline noire."})
 
-# Démarrage du serveur Flask
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
