@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, Response
 import json
+import os
 
 app = Flask(__name__)
 
@@ -32,71 +33,42 @@ lithotherapie_data = {
         "chakra": "Chakra du plexus solaire (3e).",
         "signe": "Lion, Gémeaux.",
         "entretien": "Purification : Eau. Rechargement : Soleil, amas de quartz."
-    },
-    "jaspe rouge": {
-        "description": "Pierre d’ancrage et de vitalité, favorise la confiance en soi.",
-        "utilisation": "Bijoux, méditation, décoration.",
-        "chakra": "Chakra racine (1er).",
-        "signe": "Bélier, Scorpion.",
-        "entretien": "Purification : Eau, terre. Rechargement : Soleil."
-    },
-    "hématite": {
-        "description": "Pierre de force et de protection, absorbe les mauvaises énergies.",
-        "utilisation": "Bijoux, pierre roulée dans la poche.",
-        "chakra": "Chakra racine (1er).",
-        "signe": "Bélier, Scorpion.",
-        "entretien": "Purification : Pas d’eau ! Encens, sel sec. Rechargement : Soleil, géode de quartz."
-    },
-    "onyx": {
-        "description": "Pierre d’ancrage et de stabilité émotionnelle.",
-        "utilisation": "Bijoux, méditation, protection.",
-        "chakra": "Chakra racine (1er).",
-        "signe": "Capricorne, Lion.",
-        "entretien": "Purification : Eau, encens. Rechargement : Soleil."
-    },
-    "cristal de roche": {
-        "description": "Amplificateur d’énergie, purifie et harmonise.",
-        "utilisation": "Utilisé avec d’autres pierres, en méditation.",
-        "chakra": "Tous les chakras.",
-        "signe": "Tous les signes.",
-        "entretien": "Purification : Eau. Rechargement : Soleil, lune."
-    },
-    "aventurine": {
-        "description": "Pierre de chance et d’optimisme.",
-        "utilisation": "Bijoux, porte-bonheur, méditation.",
-        "chakra": "Chakra du cœur (4e).",
-        "signe": "Taureau, Balance.",
-        "entretien": "Purification : Eau. Rechargement : Soleil, géode de quartz."
     }
 }
 
+# Route GET pour tester que l'API fonctionne
+@app.route("/", methods=['GET'])
+def home():
+    return jsonify({"message": "Bienvenue sur l'API de lithothérapie ! Utilisez /chatbot avec une requête POST pour poser une question."})
 
-@app.route('/chatbot', methods=['POST'])
+# Route GET et POST pour interagir avec le chatbot
+@app.route('/chatbot', methods=['GET', 'POST'])
 def chatbot():
+    if request.method == 'GET':
+        return jsonify({"message": "Utilisez une requête POST avec un JSON pour poser une question sur une pierre."})
+
     data = request.json
     question = data.get("message", "").lower()
     
     for pierre, details in lithotherapie_data.items():
         if pierre in question:
-            response = f"🌿 **{pierre.capitalize()}**\n"
-            response += f"✨ {details['description']}\n\n"
-            response += f"🛠 **Utilisation** : {details['utilisation']}\n"
-            response += f"🌀 **Chakra** : {details['chakra']}\n"
-            response += f"♉ **Signes astrologiques** : {details['signe']}\n"
-            response += f"💧 **Entretien** : {details['entretien']}\n"
-            
-            return Response(
-                json.dumps({"response": response}, ensure_ascii=False),
-                content_type="application/json; charset=utf-8"
-            )
+            response = {
+                "pierre": pierre.capitalize(),
+                "description": details["description"],
+                "utilisation": details["utilisation"],
+                "chakra": details["chakra"],
+                "signe": details["signe"],
+                "entretien": details["entretien"]
+            }
+            return jsonify(response)
 
-    return jsonify({"response": "Je ne connais pas encore cette pierre, mais je peux te renseigner sur d'autres. Demande-moi par exemple les bienfaits de l'améthyste ou comment recharger la tourmaline noire."})
-if __name__ == '__main__':
-   import os
+    return jsonify({"response": "Je ne connais pas encore cette pierre, mais je peux te renseigner sur d'autres."})
 
+# Démarrage du serveur Flask
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
+
 
 
    
